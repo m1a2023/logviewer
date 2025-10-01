@@ -1,134 +1,92 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Spinner } from "../../components/spinner/Spinner";
 import { API_ENDPOINTS } from "../../shared/api/api/endpoints";
 import type { DocMultipleResponse } from "../../shared/types/docs/DocumentResponse";
-import type { Log } from "../../shared/types/logs/Log";
+import type {Log, LogLevelType} from "../../shared/types/logs/Log";
 import type { Segment } from "../../shared/types/segments/Segment";
 import { SegmentList } from "../../widgets/logs/SegmentList";
+import {fetchLogs} from "./fetchLogs.ts"
+import {LogCard} from "../../components/logs/LogCard.tsx";
 
-const segs: Segment[] = [
-  {
-    id: 1,
-    type: "plan",
-    logs_start: 0,
-	logs_end: 1,
-    logs: [
-      { 
-        msg: "Started plan execution", 
-        level: "info", 
-        timestamp: "2025-10-01T00:00:00Z",
-        tags: ["init", "startup"],
-        author: "system",
-      },
-      { 
-        msg: "Plan step 1 completed", 
-        level: "debug", 
-        timestamp: "2025-10-01T00:01:00Z",
-        notes: "Step 1 passed without issues",
-        related_ids: ["101", "102"],
-      },
-    ],
-  },
-  {
-    id: 2,
-    type: "apply",
-    logs_start: 2,
-	logs_end: 3,
-    logs: [
-      { 
-        msg: "Apply started", 
-        level: "INFO", 
-        timestamp: "2025-10-01T00:05:00Z",
-        tags: ["apply", "start"],
-      },
-      { 
-        msg: "Applied resource X", 
-        level: "DEBUG", 
-        timestamp: "2025-10-01T00:06:00Z",
-        author: "terraform",
-      },
-      { 
-        msg: "Warning: resource Y might be overwritten", 
-        level: "warning", 
-        timestamp: "2025-10-01T00:07:00Z",
-        notes: "Check dependencies before applying",
-        related_ids: ["X", "Y"],
-      },
-    ],
-  },
-  {
-    id: 3,
-    type: "PLAN",
-    logs_start: 5,
-	logs_end: 6,
-    logs: [
-      { 
-        msg: "Replanning started", 
-        level: "info", 
-        timestamp: "2025-10-01T00:10:00Z",
-        tags: ["replan"],
-      },
-      { 
-        msg: "Plan step 2 completed", 
-        level: "debug", 
-        timestamp: "2025-10-01T00:11:00Z",
-        notes: "Minor adjustments applied",
-      },
-    ],
-  },
-  {
-    id: 4,
-    type: "APPLY",
-    logs_start: 7,
-	logs_end: 8,
-    logs: [
-      { 
-        msg: "Apply phase 2 started", 
-        level: "INFO", 
-        timestamp: "2025-10-01T00:15:00Z",
-        author: "system",
-      },
-      { 
-        msg: "Error applying resource Z", 
-        level: "ERROR", 
-        timestamp: "2025-10-01T00:16:00Z",
-        notes: ["Check resource permissions", "Retry later"],
-        related_ids: ["Z"],
-      },
-      { 
-        msg: "Apply finished with warnings", 
-        level: "WARNING", 
-        timestamp: "2025-10-01T00:17:00Z",
-        tags: ["end", "warning"],
-      },
-    ],
-  },
-  {
-    id: 5,
-    type: "plan",
-    logs_start: 10,
-	logs_end: 11,
-    logs: [
-      { 
-        msg: "Finalizing plan", 
-        level: "info", 
-        timestamp: "2025-10-01T00:20:00Z",
-        author: "planner",
-      },
-      { 
-        msg: "Plan validation passed", 
-        level: "INFO", 
-        timestamp: "2025-10-01T00:21:00Z",
-        tags: ["validation"],
-        notes: ["All checks OK"],
-      },
-    ],
-  },
-];
+type SortConfig = {
+    key: 'level' | 'timestamp';
+    direction: 'ascending' | 'descending';
+};
+
+const levelSeverity: Record<LogLevelType, number> = {
+    "ERROR": 5, "error": 5,
+    "WARNING": 4, "warning": 4,
+    "INFO": 3, "info": 3,
+    "DEBUG": 2, "debug": 2,
+    "TRACE": 1, "trace": 1
+};
 
 export const LogsView = (): React.ReactElement => {
 	const [segments, setSegments] = useState<Segment[]>([]);
-	const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: 'timestamp',
+        direction: 'ascending'
+    });
+
+    const [levelFilters, setLevelFilters] = useState<Record<string, boolean>>({
+        "error": true,
+        "warning": true,
+        "info": true,
+        "debug": true,
+        "trace": true,
+    });
+
+
+    const ALL_LOG_LEVELS: LogLevelType[] = ["error", "warning", "info", "debug", "trace"];
+
+    const [logs, setLogs] = useState<Log[]>([]);
+
+    const processedLogs = useMemo(() => {
+        const filtered = logs.filter(log =>
+            levelFilters[log.level || '']
+        );
+
+        const sorted = [...filtered].sort((a, b) => {
+            if (sortConfig.key === 'level') {
+                const levelA = levelSeverity[a.level || 'info'];
+                const levelB = levelSeverity[b.level || 'info'];
+                if (levelA < levelB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (levelA > levelB) return sortConfig.direction === 'ascending' ? 1 : -1;
+                return 0;
+            } else { // Сортировка по timestamp
+                const timeA = a.timestamp || '';
+                const timeB = b.timestamp || '';
+                if (timeA < timeB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (timeA > timeB) return sortConfig.direction === 'ascending' ? 1 : -1;
+                return 0;
+            }
+        });
+
+        return sorted;
+    }, [sortConfig, levelFilters, logs]);
+
+    const requestSort = (key: 'level' | 'timestamp') => {
+        let direction: 'ascending' | 'descending' = 'descending';
+        if (sortConfig.key === key && sortConfig.direction === 'descending') {
+            direction = 'ascending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const handleFilterToggle = (level: string) => {
+        setLevelFilters(prevFilters => ({
+            ...prevFilters,
+            [level]: !prevFilters[level]
+        }));
+    };
+
+    const getSortIcon = (key: 'level' | 'timestamp') => {
+        if (sortConfig.key !== key) return null;
+        return sortConfig.direction === 'descending' ? ' ▼' : ' ▲';
+    }
+
 
 	const SpinnerContainer = () => (
 		<div className="position-absolute top-50 start-50 translate-middle">
@@ -136,19 +94,89 @@ export const LogsView = (): React.ReactElement => {
 		</div>
 	);
 
-	useEffect(() => {
-		// Instead of api
-		{
-			setIsLoaded(true);
-			setSegments(segs);
-		}
-	}, [segs]);
+    useEffect(() => {
+        const loadLogs = async () => {
+            try {
+                const data = await fetchLogs('http://127.0.0.1:8000/logs'); // или твой URL
+                console.log(data);
+                setLogs(data);
+                console.log(logs);
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false);
+                console.log(logs)
+            }
+        };
+
+        loadLogs();
+    }, []);
+
+    useEffect(() => {
+        console.log("Raw logs:", logs);
+        console.log("Processed logs:", processedLogs);
+    }, [logs, processedLogs]);
+
+    if (loading) return <div>Загрузка...</div>;
+
 
 	return (
-		<>
-			{isLoaded ? <SegmentList segments={segments} /> : <SpinnerContainer />}
-		</>
-	);
+        <div className={"p-2"}>
+            <div style={{marginBottom: '20px', padding: '10px', background: '#f0f0f0', borderRadius: '5px'}}>
+                {/* Блок фильтров */}
+                <div style={{marginBottom: '10px'}}>
+                    <strong>Filter by Level:</strong>
+                    {ALL_LOG_LEVELS.map(level => (
+                        <button
+                            key={level}
+                            onClick={() => handleFilterToggle(level)}
+                            style={{
+                                marginLeft: '10px',
+                                padding: '5px 10px',
+                                border: '1px solid #ccc',
+                                backgroundColor: levelFilters[level] ? '#cce5ff' : '#fff',
+                                fontWeight: levelFilters[level] ? 'bold' : 'normal',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {level}
+                        </button>
+                    ))}
+                </div>
+
+                <div>
+                    <strong>Sort by:</strong>
+                    <button onClick={() => requestSort('timestamp')} style={{marginLeft: '10px', padding: '5px 10px'}}>
+                        Timestamp{getSortIcon('timestamp')}
+                    </button>
+                    <button onClick={() => requestSort('level')} style={{marginLeft: '10px', padding: '5px 10px'}}>
+                        Level{getSortIcon('level')}
+                    </button>
+                </div>
+            </div>
+
+            <div className="mb-4 border-start border-4 border-danger ps-3">
+                {/* Заголовок-кнопка */}
+                <button
+                    className="fw-bold bg-light py-2 px-3 rounded mb-3 border-0 w-100 text-start"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#applyLogs"
+                    aria-expanded="true"
+                    aria-controls="applyLogs"
+                >
+                    Apply
+                </button>
+
+                {/* Контейнер логов */}
+                <div className="collapse show" id="applyLogs">
+                    {processedLogs.map((log, index) => (
+                        <LogCard key={`${log.timestamp}-${index}`} log={log}/>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default LogsView;
