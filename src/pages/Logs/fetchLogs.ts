@@ -1,4 +1,4 @@
-import type {Log} from "../../shared/types/logs/Log";
+import type {Log, LogLevelType} from "../../shared/types/logs/Log";
 
 
 export const fetchLogs = async (url: string): Promise<Log[]> => {
@@ -8,25 +8,20 @@ export const fetchLogs = async (url: string): Promise<Log[]> => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const rawData: Array<{
-            level: string;
-            message: string;
-            timestamp: string;
-            [key: string]: any; // для дополнительных полей
-        }> = await response.json();
+        const rawData: Array<Log> = await response.json();
 
 
         const logs: Log[] = rawData.map(item => {
-            let loglevel = item.level;
-            if (typeof loglevel !== 'string') {
-                loglevel = 'UNKNOWN';
+            if (typeof item.level !== 'string') {
+                item.level = 'UNKNOWN';
             }
 
-            const { message, timestamp, ...rest } = item;
+            const { msg, level, timestamp, ...rest} = item;
+
             return {
-                level: loglevel,
-                msg: message,
-                timestamp,
+                msg: item.msg,
+                level: item.level,
+                timestamp: item.timestamp,
                 ...rest, // копируем все остальные поля без изменений
             };
         });

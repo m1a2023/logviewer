@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { LogCardProps } from "../../shared/types/logs/LogProps";
+import type { LogProps } from "../../shared/types/logs/LogProps";
 import type { LogLevelType } from "../../shared/types/logs/Log";
 
 // Вспомогательная функция для определения цвета в зависимости от уровня лога
@@ -19,7 +19,7 @@ const getLevelColor = (level: LogLevelType): string => {
     }
 };
 
-export const LogCard = ({ log }: LogCardProps): React.ReactElement => {
+export const LogCard = ({ log }: LogProps): React.ReactElement => {
     // Состояние для отслеживания, раскрыт ли лог
     const [isExpanded, setIsExpanded] = useState(false);
 

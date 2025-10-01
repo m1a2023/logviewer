@@ -1,6 +1,7 @@
 
-export type LogLevelType = "info" | "warning" | "debug" | "error" | "trace" |
-                        "INFO" | "WARNING" | "DEBUG" | "ERROR" | "TRACE";
+export type LogLevelType = "info" | "warning" | "debug" | "error" | "trace" | "unknown" |
+                        "INFO" | "WARNING" | "DEBUG" | "ERROR" | "TRACE" | 
+                        "UNKNOWN";
 
 export type Log = {
     msg: string;

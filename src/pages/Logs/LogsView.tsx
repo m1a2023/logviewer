@@ -14,6 +14,7 @@ type SortConfig = {
 };
 
 const levelSeverity: Record<LogLevelType, number> = {
+	"UNKNOWN": 6, "unknown": 6, 
     "ERROR": 5, "error": 5,
     "WARNING": 4, "warning": 4,
     "INFO": 3, "info": 3,
