@@ -4,12 +4,14 @@ import { API_ENDPOINTS } from "../../shared/api/api/endpoints";
 import type { DocMultipleResponse } from "../../shared/types/docs/DocumentResponse";
 import type { Log } from "../../shared/types/logs/Log";
 import type { Segment } from "../../shared/types/segments/Segment";
+import { SegmentList } from "../../widgets/logs/SegmentList";
 
 const segs: Segment[] = [
   {
     id: 1,
     type: "plan",
     logs_start: 0,
+	logs_end: 1,
     logs: [
       { 
         msg: "Started plan execution", 
@@ -31,6 +33,7 @@ const segs: Segment[] = [
     id: 2,
     type: "apply",
     logs_start: 2,
+	logs_end: 3,
     logs: [
       { 
         msg: "Apply started", 
@@ -57,6 +60,7 @@ const segs: Segment[] = [
     id: 3,
     type: "PLAN",
     logs_start: 5,
+	logs_end: 6,
     logs: [
       { 
         msg: "Replanning started", 
@@ -76,6 +80,7 @@ const segs: Segment[] = [
     id: 4,
     type: "APPLY",
     logs_start: 7,
+	logs_end: 8,
     logs: [
       { 
         msg: "Apply phase 2 started", 
@@ -102,6 +107,7 @@ const segs: Segment[] = [
     id: 5,
     type: "plan",
     logs_start: 10,
+	logs_end: 11,
     logs: [
       { 
         msg: "Finalizing plan", 
@@ -120,8 +126,8 @@ const segs: Segment[] = [
   },
 ];
 
-const LogsView = (): React.ReactElement => {
-	const [segments, setSegments] = useState<Segment[]>(segs);
+export const LogsView = (): React.ReactElement => {
+	const [segments, setSegments] = useState<Segment[]>([]);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
 	const SpinnerContainer = () => (
@@ -131,13 +137,16 @@ const LogsView = (): React.ReactElement => {
 	);
 
 	useEffect(() => {
-		
-		console.log(`API Request ${API_ENDPOINTS}`)
-	}, []);
+		// Instead of api
+		{
+			setIsLoaded(true);
+			setSegments(segs);
+		}
+	}, [segs]);
 
 	return (
 		<>
-			{/* {isLoaded ? <DocumentList documents={documents} /> : <SpinnerContainer />} */}
+			{isLoaded ? <SegmentList segments={segments} /> : <SpinnerContainer />}
 		</>
 	);
 };
