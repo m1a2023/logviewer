@@ -7,7 +7,7 @@ interface SegmentListProps {
     searchQuery: string; // <-- добавлено
 }
 
-const colorMap = [
+export const colorMap = [
     { border: "border-success", bg: "bg-success-subtle" },
     { border: "border-danger", bg: "bg-danger-subtle" },
     { border: "border-warning", bg: "bg-warning-subtle" },
@@ -16,7 +16,7 @@ const colorMap = [
 ];
 
 // Утилита для сериализации лога в строку
-const serializeLog = (log: any): string => {
+export const serializeLog = (log: any): string => {
     try {
         return JSON.stringify(log, (key, value) =>
             value === undefined ? null : value

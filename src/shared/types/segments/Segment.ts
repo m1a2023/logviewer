@@ -18,3 +18,20 @@ export interface Segment {
     }[];
     SubSegment: SubSegment
 }
+
+export interface GRPCPluginSegment {
+    id: number;
+    segment_id: number;
+    filename: string;
+    plugin_address: string;
+    plugin_name: string;
+    success: boolean;
+    message: string;
+    metadata: {
+        matched: number;
+        filter_field: string;
+        filter_value: string;
+    };
+    filtered_logs: Log[];
+    created_at: string; // timestamp
+}
