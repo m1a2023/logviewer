@@ -40,6 +40,7 @@ const Navbar = (): React.ReactElement => {
 						<div className="navbar-nav gap-2 me-auto mb-2 mb-lg-0">
 							<NavbarButtonLink text="View" href="/logs/view" />
 							<NavbarButtonLink text="Upload" href="/logs/upload" />
+							<NavbarButtonLink text="Plugins" href="/logs/plugins" />
 						</div>
 					</div>
 				</div>
