@@ -82,9 +82,14 @@ export const LogCard = ({ log }: LogCardProps): React.ReactElement => {
                      onClick={handleToggle}
                 >
                     {hasDetails && (
-                        <span className="text-muted">
-              {isExpanded ? "▼" : "▶"}
-            </span>
+                        <span
+                            className="text-muted"
+                            style={{
+                                transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease'
+                            }}
+                        >  ▶
+                        </span>
                     )}
                     <span>{Id}</span>
                     <span className={getLevelClass(level)}>[{level}]</span>

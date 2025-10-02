@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Spinner } from "../../components/spinner/Spinner";
 import { SegmentList } from "../../widgets/logs/SegmentList";
 import LoadedLogs from "./LoadedLogs";
+import {SearchBar} from "../../widgets/controls/SearchBar"
 
 import { useLogsStore} from "../../store/useLogsStore.ts";
 import { useSegmentsStore} from "../../store/useSegmentStore.ts";
@@ -14,6 +15,8 @@ export const LogsView = (): React.ReactElement => {
     const { segments, fetchSegments, loading: segLoading, error: segError } =
         useSegmentsStore();
     const { fetchChains } = useChainsStore();
+    const [searchQuery, setSearchQuery] = useState<string>('');
+
 
     const [levelFilters, setLevelFilters] = useState<Record<string, boolean>>({
         error: true,
@@ -48,7 +51,7 @@ export const LogsView = (): React.ReactElement => {
 
     return (
         <div className="p-2">
-            {/* Фильтры */}
+            <SearchBar setSearchQuery={setSearchQuery} className={"sticky-top"}/>
             <div
                 style={{
                     marginBottom: "20px",
@@ -81,11 +84,12 @@ export const LogsView = (): React.ReactElement => {
             {/* Выбор файла */}
             <LoadedLogs />
 
+
             {/* Логи */}
             {segLoading && <Spinner />}
             {segError && <div className="text-danger">{segError}</div>}
             {!segLoading && !segError && (
-                <SegmentList segments={segments} levelFilters={levelFilters}/>
+                <SegmentList segments={segments} levelFilters={levelFilters} searchQuery={searchQuery}/>
             )}
         </div>
     );

@@ -31,6 +31,10 @@ const router = createBrowserRouter([
                     path: "/chain/:filename/:id",
                     element: <ChainView />,
                 },
+                {
+                    path: "/gantt/:filename",
+                    element: <GanttDiagram/>,
+                }
 			],
 		},
 	],
