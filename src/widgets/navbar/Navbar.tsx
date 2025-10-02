@@ -41,12 +41,6 @@ const Navbar = (): React.ReactElement => {
 							<NavbarButtonLink text="View" href="/logs/view" />
 							<NavbarButtonLink text="Upload" href="/logs/upload" />
 						</div>
-						<NavbarButtonLink
-							text={auth?.loggedIn ? "Log out" : "Login"}
-							href="/login"
-							onClick={handleLogOut}
-							className="d-flex"
-						/>
 					</div>
 				</div>
 			</nav>

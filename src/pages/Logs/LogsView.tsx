@@ -3,6 +3,7 @@ import { Spinner } from "../../components/spinner/Spinner";
 import { SegmentList } from "../../widgets/logs/SegmentList";
 import LoadedLogs from "./LoadedLogs";
 import {SearchBar} from "../../widgets/controls/SearchBar"
+import Chart from "../../components/icons/ganttchart.svg"
 
 import { useLogsStore} from "../../store/useLogsStore.ts";
 import { useSegmentsStore} from "../../store/useSegmentStore.ts";
@@ -60,8 +61,9 @@ export const LogsView = (): React.ReactElement => {
                     borderRadius: "5px",
                 }}
             >
-                <div style={{ marginBottom: "10px" }}>
+                <div style={{marginBottom: "10px"}}>
                     <strong>Filter by Level:</strong>
+
                     {ALL_LOG_LEVELS.map((level) => (
                         <button
                             key={level}

@@ -5,6 +5,7 @@ import DocumentsUpload from "../widgets/docs/DocumentUpload";
 import LogLayout from "../pages/Logs/LogLayout";
 import LogsView from "../pages/Logs/LogsView";
 import ChainView from "../pages/Chains/ChainView.tsx";
+import GanttChart from "../components/diagrams/GanttDiagram.jsx";
 
 const router = createBrowserRouter([
 {
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
                 },
                 {
                     path: "/gantt/:filename",
-                    element: <GanttDiagram/>,
+                    element: <GanttChart/>,
                 }
 			],
 		},
