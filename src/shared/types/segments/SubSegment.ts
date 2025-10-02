@@ -1,9 +1,6 @@
-import type { Log } from "../logs/Log";
-import type {SubSegment} from "./SubSegment.ts";
-
 export type SegmentType = "plan" | "apply" | "PLAN" | "APPLY";
 
-export interface Segment {
+export interface SubSegment {
     Type: string;
     Id: string;
     StartTime: string;
@@ -16,5 +13,4 @@ export interface Segment {
         timestamp: string;
         [detaild: string]: string;
     }[];
-    SubSegment: SubSegment
 }

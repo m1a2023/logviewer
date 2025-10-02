@@ -1,39 +1,32 @@
 import type {Log} from "../../shared/types/logs/Log";
 
 
-export const fetchLogs = async (url: string): Promise<Log[]> => {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+import type { Segment } from "./types"; // твой Segment
 
-        const rawData: Array<{
-            level: string;
-            message: string;
-            timestamp: string;
-            [key: string]: any; // для дополнительных полей
-        }> = await response.json();
-
-
-        const logs: Log[] = rawData.map(item => {
-            let loglevel = item.level;
-            if (typeof loglevel !== 'string') {
-                loglevel = 'UNKNOWN';
-            }
-
-            const { message, timestamp, ...rest } = item;
-            return {
-                level: loglevel,
-                msg: message,
-                timestamp,
-                ...rest, // копируем все остальные поля без изменений
-            };
-        });
-
-        return logs;
-    } catch (error) {
-        console.error('Failed to fetch logs:', error);
-        throw error; // или возвращай пустой массив, если хочешь избежать ошибки
+export async function fetchLogs(): Promise<Segment[]> {
+    const response = await fetch("/api/logs"); // или твой реальный endpoint
+    if (!response.ok) {
+        throw new Error(`Ошибка загрузки логов: ${response.statusText}`);
     }
-};
+
+    const text = await response.text();
+    const data = JSON.parse(text);
+
+    console.log(data);
+
+
+    const segments: Segment[] = data.map((item: any) => ({
+        Type: item.Type,
+        Id: item.Id,
+        StartTime: item.StartTime,
+        EndTime: item.EndTime,
+        ErrorOccurred: item.ErrorOccurred,
+        Logs: item.Logs.map((log: any) => ({
+            level: log.level,
+            message: log.message,
+            timestamp: log.timestamp
+        }))
+    }));
+
+    return segments;
+}

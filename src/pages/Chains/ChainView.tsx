@@ -1,19 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Spinner } from "../../components/spinner/Spinner";
-import { SegmentList } from "../../widgets/logs/SegmentList";
-import LoadedLogs from "./LoadedLogs";
+import { useParams } from "react-router-dom";
+import {useChainsStore} from "../../store/useChainsStore.ts";
+import React, {useEffect, useState} from "react";
+import {LogCard} from "../../components/logs/LogCard.tsx";
+import type {LogLevelType} from "../../shared/types/logs/Log.ts";
 
-import { useLogsStore} from "../../store/useLogsStore.ts";
-import { useSegmentsStore} from "../../store/useSegmentStore.ts";
-import { useChainsStore} from "../../store/useChainsStore.ts";
 
-import type { LogLevelType } from "../../shared/types/logs/Log";
-
-export const LogsView = (): React.ReactElement => {
-    const { selectedFile } = useLogsStore();
-    const { segments, fetchSegments, loading: segLoading, error: segError } =
-        useSegmentsStore();
-    const { fetchChains } = useChainsStore();
+export default function ChainView() {
+    const { id, filename } = useParams<{ id: string; filename: string }>();
+    const { chains, loading, error, fetchChains } = useChainsStore();
 
     const [levelFilters, setLevelFilters] = useState<Record<string, boolean>>({
         error: true,
@@ -38,17 +32,23 @@ export const LogsView = (): React.ReactElement => {
         }));
     };
 
-    // Загружаем сегменты и chains при выборе файла
     useEffect(() => {
-        if (selectedFile) {
-            fetchSegments(selectedFile);
-            fetchChains(selectedFile);
+        if (filename) {
+            fetchChains(filename);
         }
-    }, [selectedFile, fetchSegments, fetchChains]);
+    }, [fetchChains, filename]);
+
+    if (loading) return <div>Загрузка...</div>;
+    if (error) return <div>Ошибка: {error}</div>;
+
+    const selectedChain = chains.find(chain => chain.tf_req_id === id);
+
+    if (!selectedChain) {
+        return <div>Цепочка с ID {id} не найдена</div>;
+    }
 
     return (
-        <div className="p-2">
-            {/* Фильтры */}
+        <div>
             <div
                 style={{
                     marginBottom: "20px",
@@ -57,7 +57,7 @@ export const LogsView = (): React.ReactElement => {
                     borderRadius: "5px",
                 }}
             >
-                <div style={{ marginBottom: "10px" }}>
+                <div style={{marginBottom: "10px"}}>
                     <strong>Filter by Level:</strong>
                     {ALL_LOG_LEVELS.map((level) => (
                         <button
@@ -78,17 +78,10 @@ export const LogsView = (): React.ReactElement => {
                 </div>
             </div>
 
-            {/* Выбор файла */}
-            <LoadedLogs />
-
-            {/* Логи */}
-            {segLoading && <Spinner />}
-            {segError && <div className="text-danger">{segError}</div>}
-            {!segLoading && !segError && (
-                <SegmentList segments={segments} levelFilters={levelFilters}/>
+            <h2>TF Req ID: {selectedChain.tf_req_id}</h2>
+            {selectedChain.Logs.map((log, idx) =>
+                levelFilters[log.level] ? <LogCard key={idx} log={log} /> : null
             )}
         </div>
     );
-};
-
-export default LogsView;
+}
