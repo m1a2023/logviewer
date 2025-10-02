@@ -32,7 +32,6 @@ const MultipleFileInput = ({ files, capture, onUpload, onUploadChains }: Multipl
         });
 
         try {
-            // Выполняем оба запроса параллельно для ускорения
             const [segmentsResponse, chainsResponse] = await Promise.all([
                 fetch("http://127.0.0.1:8000/api/parsejson", {
                     method: "POST",

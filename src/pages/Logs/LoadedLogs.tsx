@@ -37,6 +37,9 @@ const LoadedLogs: React.FC = () => {
         <span className="fs-5">
           Текущий файл:{" "}
             <strong>{selectedFile ? selectedFile : "Не выбран"}</strong>
+            <div>   </div>
+            {selectedFile ? <a href={`http://localhost:5173/gantt/${selectedFile}`}><strong>Gantt diagram</strong></a> : ""}
+
         </span>
                 <button
                     className="btn btn-primary"
